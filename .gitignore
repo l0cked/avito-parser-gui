@@ -7,3 +7,4 @@ qml/qml.qrc
 
 build.bat
 *.db
+src/

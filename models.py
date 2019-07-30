@@ -1,38 +1,51 @@
 from PyQt5.QtCore import QAbstractListModel, Qt, pyqtSlot, QModelIndex
 
 
-class LogModel(QAbstractListModel):
-    TimeRole = Qt.UserRole + 1
-    TypeRole = Qt.UserRole + 2
-    MessageRole = Qt.UserRole + 3
-
-    items = []
-
-    def __init__(self):
+class TableModel(QAbstractListModel):
+    def __init__(self, *roles):
         super().__init__()
-        # self.items =  [{'time': '__:__:__', 'type': '', 'message': 'Lorem ipsum dolor sit amet, consectetur adipisicing elit. Dolores debitis minima iure fugit voluptates sit, tenetur beatae iusto officiis necessitatibus cupiditate quibusdam voluptas nulla quos ratione animi repellendus ipsam. Eos.'} for _ in range(20)]
+        self.roles = roles
+        self.items = []
+        self.values = []
+        n = 0
+        for role in self.roles:
+            n += 1
+            value = Qt.UserRole + n
+            self.values.append(value)
+            setattr(self, role+'Role', value)
 
     def data(self, index, role=Qt.DisplayRole):
-        row = index.row()
-        if role == LogModel.TimeRole:
-            return self.items[row]['time']
-        if role == LogModel.TypeRole:
-            return self.items[row]['type']
-        if role == LogModel.MessageRole:
-            return self.items[row]['message']
+        if role in self.values:
+            row = index.row()
+            index = self.values.index(role)
+            name = self.roles[index]
+            return self.items[row][name.lower()]
 
     def rowCount(self, parent=QModelIndex()):
         return len(self.items)
 
     def roleNames(self):
-        return {
-            LogModel.TimeRole: b'time',
-            LogModel.TypeRole: b'type',
-            LogModel.MessageRole: b'message'
-        }
+        ret = {}
+        for v in self.values:
+            i = self.values.index(v)
+            ret[v] = bytes(str(self.roles[i]).lower(), encoding='utf8')
+        return ret
 
-    @pyqtSlot(str, str, str)
-    def addItem(self, time, type, message):
+    @pyqtSlot()
+    def addItem(self, *args):
+        ret = {}
+        n = 0
+        for v in self.values:
+            i = self.values.index(v)
+            ret[str(self.roles[i]).lower()] = str(args[n])
+            n += 1
         self.beginInsertRows(QModelIndex(), self.rowCount(), self.rowCount())
-        self.items.append({'time': time, 'type': type, 'message': message})
+        self.items.append(ret)
         self.endInsertRows()
+
+    @pyqtSlot()
+    def clear(self):
+        self.beginRemoveRows(QModelIndex(), 0, self.rowCount())
+        self.removeRows(0, self.rowCount(), QModelIndex())
+        self.endRemoveRows()
+        self.items = []
