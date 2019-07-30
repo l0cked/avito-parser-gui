@@ -2,7 +2,5 @@
 
 Асинхронный парсер https://m.avito.ru на Python
 
-- [x] aiohttp
-- [x] aiosqlite
-- [x] asyncio
+- [x] asyncio, aiohttp, aiosqlite, PyQt5, QML
 - [x] proxy
