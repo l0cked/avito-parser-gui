@@ -4,6 +4,7 @@ import QtQuick.Layouts 1.3
 import QtQuick.Controls 2.3
 import QtQuick.Controls 1.6 as C
 
+
 Window {
     visible: true
     width: 1400
@@ -120,41 +121,21 @@ Window {
                                     border.color: "#303030"
                                     C.TableView {
                                         id: itemsTable
-                                        model: itemsModel
+                                        model: sortItemsModel
                                         anchors.fill: parent
                                         anchors.margins: 1
                                         frameVisible: false
                                         alternatingRowColors: false
                                         backgroundVisible: false
-                                        headerDelegate: Rectangle {
-                                            height: textItem1.implicitHeight * 2
-                                            width: textItem1.implicitWidth
-                                            color: "#202020"
-                                            Text {
-                                                id: textItem1
-                                                anchors.fill: parent
-                                                verticalAlignment: Text.AlignVCenter
-                                                anchors.leftMargin: 12
-                                                text: styleData.value
-                                                color: "#fff"
-                                                renderType: Text.NativeRendering
-                                                clip: true
-                                            }
-                                            Rectangle {
-                                                anchors.right: parent.right
-                                                anchors.top: parent.top
-                                                anchors.bottom: parent.bottom
-                                                anchors.bottomMargin: 1
-                                                anchors.topMargin: 1
-                                                width: 1
-                                                color: "#565656"
-                                            }
-                                        }
+                                        sortIndicatorVisible: true
+                                        onSortIndicatorOrderChanged: model.sort(sortIndicatorColumn, sortIndicatorOrder)
+                                        onSortIndicatorColumnChanged: model.sort(sortIndicatorColumn, sortIndicatorOrder)
                                         rowDelegate: Rectangle {
                                             height: 20
                                             color: styleData.selected ? "#777777" : "#202020"
                                         }
                                         itemDelegate: Rectangle {
+                                            clip: true
                                             color: "transparent"
                                             Text {
                                                 anchors.fill: parent
@@ -164,7 +145,6 @@ Window {
                                                 text: styleData.value
                                                 renderType: Text.NativeRendering
                                             }
-                                            clip: true
                                         }
                                         C.TableViewColumn {
                                             role: "id"
@@ -238,36 +218,15 @@ Window {
                                     border.color: "#303030"
                                     C.TableView {
                                         id: proxyTable
-                                        model: proxyModel
+                                        model: sortProxyModel
                                         anchors.fill: parent
                                         anchors.margins: 1
                                         frameVisible: false
                                         alternatingRowColors: false
                                         backgroundVisible: false
-                                        headerDelegate: Rectangle {
-                                            height: textItem.implicitHeight * 2
-                                            width: textItem.implicitWidth
-                                            color: "#202020"
-                                            Text {
-                                                id: textItem
-                                                anchors.fill: parent
-                                                verticalAlignment: Text.AlignVCenter
-                                                anchors.leftMargin: 12
-                                                text: styleData.value
-                                                color: "#fff"
-                                                renderType: Text.NativeRendering
-                                                clip: true
-                                            }
-                                            Rectangle {
-                                                anchors.right: parent.right
-                                                anchors.top: parent.top
-                                                anchors.bottom: parent.bottom
-                                                anchors.bottomMargin: 1
-                                                anchors.topMargin: 1
-                                                width: 1
-                                                color: "#565656"
-                                            }
-                                        }
+                                        sortIndicatorVisible: true
+                                        onSortIndicatorOrderChanged: model.sort(sortIndicatorColumn, sortIndicatorOrder)
+                                        onSortIndicatorColumnChanged: model.sort(sortIndicatorColumn, sortIndicatorOrder)
                                         rowDelegate: Rectangle {
                                             height: 20
                                             color: styleData.selected ? "#777777" : "#202020"

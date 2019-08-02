@@ -1,5 +1,5 @@
 from datetime import datetime, timedelta
-from models import TableModel
+from models import TableModel, SortFilterProxyModel
 from proxylist import Proxylist
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 import aiohttp
@@ -10,18 +10,21 @@ import time
 
 
 class Parse(Proxylist):
-    items_model = TableModel('Id', 'Dt', 'Name', 'Price', 'Author', 'Address', 'Phone')
-    parse_obj = parse_thread = None
-    items = []
 
     def __init__(self):
         super().__init__()
-        self.rootContext().setContextProperty('itemsModel', self.items_model)
+        self.items = []
+        self.parse_obj = None
+        self.parse_thread = None
+        self.itemsModel = TableModel('Id', 'Dt', 'Name', 'Price', 'Author', 'Address', 'Phone')
+        self.sortItemsModel = SortFilterProxyModel(self.itemsModel)
+        self.rootContext().setContextProperty('sortItemsModel', self.sortItemsModel)
 
     def parse(self):
         if self.parse_thread and self.parse_thread.isRunning():
             return
         self.log('Start parsing', 'Parse')
+        self.itemsModel.clear()
         self.items = []
         self.parse_obj = ParseWorker(self.proxylist)
         self.parse_thread = QThread()
@@ -36,13 +39,14 @@ class Parse(Proxylist):
             self.log(message[0], 'Parse')
         if message[1]:
             item = message[1]
-            self.items_model.addItem(item['id']+1, item['dt'], item['name'], item['price'], item['author'], item['address'], item['phone'])
+            self.itemsModel.addRow([item['id']+1, item['dt'], item['name'], item['price'], item['author'], item['address'], item['phone']])
 
     def parse_on_finished(self, message):
         self.parse_thread.quit()
         self.parse_thread.wait()
         self.items = message[0]
         self.proxylist = message[1]
+        self.log('Parsing END')
 
 
 class ParseWorker(QObject):

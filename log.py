@@ -4,12 +4,11 @@ from models import TableModel
 
 
 class Log(Db):
-    log_model = TableModel('Time', 'Type', 'Message')
-
     def __init__(self):
-        self.rootContext().setContextProperty('logModel', self.log_model)
+        self.logModel = TableModel('Time', 'Type', 'Message')
+        self.rootContext().setContextProperty('logModel', self.logModel)
 
     def log(self, message, messageType='System', messageTime=None):
         if not messageTime:
             messageTime = datetime.now().strftime('%H:%M:%S')
-        self.log_model.addItem(messageTime, messageType, message)
+        self.logModel.addRow([messageTime, messageType, message])

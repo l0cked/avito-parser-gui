@@ -1,5 +1,5 @@
 from log import Log
-from models import TableModel
+from models import TableModel, SortFilterProxyModel
 from PyQt5.QtCore import QThread, QObject, pyqtSignal, pyqtSlot
 import aiohttp
 import asyncio
@@ -7,13 +7,14 @@ import time
 
 
 class Proxylist(Log):
-    proxy_model = TableModel('Id', 'Country', 'Url', 'Response_time', 'Used', 'Error')
-    proxylist_obj = proxylist_thread = None
-    proxylist = []
-
     def __init__(self):
         super().__init__()
-        self.rootContext().setContextProperty('proxyModel', self.proxy_model)
+        self.proxylist = []
+        self.proxylist_obj = None
+        self.proxylist_thread = None
+        self.proxyModel = TableModel('Id', 'Country', 'Url', 'Response_time', 'Used', 'Error')
+        self.sortProxyModel = SortFilterProxyModel(self.proxyModel)
+        self.rootContext().setContextProperty('sortProxyModel', self.sortProxyModel)
 
     async def proxylist_init(self):
         cursor = await self.db.execute('SELECT * FROM proxy')
@@ -21,7 +22,7 @@ class Proxylist(Log):
         if proxylist:
             for p in proxylist:
                 self.proxylist.append({'id': p[0], 'added': p[1], 'country': p[2], 'host': p[3], 'port': p[4], 'url': p[5], 'response_time': p[6], 'used': p[7], 'error': p[8]})
-                self.proxy_model.addItem(p[0], p[2], p[5], f'{p[6]:.2f}', p[7], p[8])
+                self.proxyModel.addRow([p[0], p[2], p[5], f'{p[6]:.2f}', p[7], p[8]])
             self.log(f'Load {len(self.proxylist)} proxy', 'Proxylist')
 
     async def proxylist_close(self):
@@ -34,7 +35,7 @@ class Proxylist(Log):
         if self.proxylist_thread and self.proxylist_thread.isRunning():
             return
         self.log('Start update proxylist', 'Proxylist')
-        self.proxy_model.clear()
+        self.proxyModel.clear()
         self.proxylist = []
         self.proxylist_obj = ProxylistUpdate()
         self.proxylist_thread = QThread()
@@ -51,7 +52,7 @@ class Proxylist(Log):
         self.log(f'Save {len(self.proxylist)} proxy', 'Proxylist')
 
     async def proxylist_clear(self):
-        self.proxy_model.clear()
+        self.proxyModel.clear()
         self.proxylist = []
         await self.db.execute(f'DELETE FROM proxy')
         await self.db.execute(f'DELETE FROM sqlite_sequence WHERE name="proxy"')
@@ -63,7 +64,7 @@ class Proxylist(Log):
             self.log(message[0], 'Proxylist')
         if message[1]:
             proxy = message[1]
-            self.proxy_model.addItem(proxy['id']+1, proxy['country'], proxy['url'], f'{proxy["response_time"]:.2f}', proxy['used'], proxy['error'])
+            self.proxyModel.addRow([proxy['id']+1, proxy['country'], proxy['url'], f'{proxy["response_time"]:.2f}', proxy['used'], proxy['error']])
 
     def proxylist_on_finished(self, message):
         self.proxylist_thread.quit()
